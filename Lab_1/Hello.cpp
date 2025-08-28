@@ -1,5 +1,5 @@
 /***
-*Sort discription of lab
+*We are learning to use VS Code and Github
 ***/
 
 #include <iostream>
@@ -10,3 +10,4 @@ int main () {
 cout << "Hello Wolrd!" << endl;
 printf("Hello World Again\n");
 return 0;
+}
