@@ -3,7 +3,7 @@
 ***/
 
 #include <iostream>
-#include <csdtlib>
+#include <cstdlib>
 using namespace std;
 
 int main () {
