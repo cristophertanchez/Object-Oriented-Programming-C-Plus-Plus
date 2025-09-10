@@ -143,3 +143,14 @@ if __name__ == "__main__":
     print("Sample f(xs, ys):", samples)
     print(f"Min z={zmin:.3f} at ({xmin:.2f}, {ymin:.2f}); Max z={zmax:.3f} at ({xmax:.2f}, {ymax:.2f})")
     print(f"Volume above baseline 0: {vol:.4f} (units^3)")
+
+from terrainGenerator import generate_topology, visualize_terrain
+
+if __name__ == "__main__":
+    terrain = generate_topology(Height=100, Width=120, alpha=1.5, seed=42)
+
+
+    visualize_terrain(terrain)
+
+    f, meta = generateFunction(terrain, x_extent=(0, 10), y_extent=(0, 8))
+    
