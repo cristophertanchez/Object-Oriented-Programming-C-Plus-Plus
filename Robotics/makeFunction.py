@@ -1,70 +1,130 @@
-# terrainGenerator.py
-# Generates a 2D terrain matrix using a 1/f^alpha spectrum
-# and provides a clean visualizer.
+# makeFunction.py
+# Wraps the terrain matrix as a callable surface f(x,y) (bilinear interpolation)
+# and provides helpers for extrema and volume. Includes a small demo.
 
 import numpy as np
-import matplotlib.pyplot as plt
+from terrainGenerator import generate_topology, visualize_terrain
 
 
-def generate_topology(Height: int, Width: int, alpha: float = 1.5, seed: int | None = None) -> np.ndarray:
+# ---- Bilinear interpolation with friendly names ----
+def _bilinear_interp(matrix, x, y, x_grid, y_grid):
     """
-    Create a (Height x Width) NumPy array of values in [0, 1] that look like terrain elevations.
-    alpha controls smoothness (larger -> smoother). seed makes it repeatable.
+    Evaluate the surface at (x,y) by blending the four surrounding grid samples.
+    - matrix is shape (H, W) with matrix[row, col] = matrix[y_index, x_index]
+    - x_grid (W,) maps col index -> physical x
+    - y_grid (H,) maps row index -> physical y
+    Accepts scalars or arrays for x and y.
     """
-    if seed is not None:
-        np.random.seed(seed)
+    x = np.asarray(x)
+    y = np.asarray(y)
 
-    # Frequency grid (cycles per pixel) for rows (ky) and cols (kx)
-    ky = np.fft.fftfreq(Height).reshape(-1, 1)   # (H,1)
-    kx = np.fft.fftfreq(Width).reshape(1, -1)    # (1,W)
-    freq = np.sqrt(kx**2 + ky**2)
-    freq[0, 0] = 1e-6  # avoid divide-by-zero at DC
+    # Clamp query to domain
+    x = np.clip(x, x_grid[0], x_grid[-1])
+    y = np.clip(y, y_grid[0], y_grid[-1])
 
-    # Random phase, amplitude shaped as 1/f^alpha
-    phase = np.random.rand(Height, Width) * 2 * np.pi
-    spectrum = (1.0 / (freq**alpha)) * (np.cos(phase) + 1j * np.sin(phase))
+    # Convert to fractional grid indices (how many steps from left/bottom)
+    dx = (x_grid[-1] - x_grid[0]) / (len(x_grid) - 1) if len(x_grid) > 1 else 1.0
+    dy = (y_grid[-1] - y_grid[0]) / (len(y_grid) - 1) if len(y_grid) > 1 else 1.0
+    ix = (x - x_grid[0]) / dx
+    iy = (y - y_grid[0]) / dy
 
-    # Bring it back to spatial domain and normalize to [0, 1]
-    field = np.fft.ifft2(spectrum).real
-    field -= field.min()
-    denom = field.max() - field.min() + 1e-12
-    field /= denom
-    return field
+    # Which cell are we in? (left/right columns, bottom/top rows)
+    left_col  = np.floor(ix).astype(int)
+    bot_row   = np.floor(iy).astype(int)
+    right_col = np.clip(left_col + 1, 0, len(x_grid) - 1)
+    top_row   = np.clip(bot_row + 1, 0, len(y_grid) - 1)
+
+    # Fractions inside the cell (0..1 toward right/up)
+    frac_x = ix - left_col
+    frac_y = iy - bot_row
+
+    # Corner heights from the matrix
+    z_bottom_left  = matrix[bot_row, left_col]
+    z_bottom_right = matrix[bot_row, right_col]
+    z_top_left     = matrix[top_row, left_col]
+    z_top_right    = matrix[top_row, right_col]
+
+    # Blend along x at bottom and top edges
+    z_bottom = (1 - frac_x) * z_bottom_left + frac_x * z_bottom_right
+    z_top    = (1 - frac_x) * z_top_left    + frac_x * z_top_right
+
+    # Blend those across y
+    return (1 - frac_y) * z_bottom + frac_y * z_top
 
 
-def visualize_terrain(
-    terrain: np.ndarray,
-    x_extent: tuple[float, float] | None = None,
-    y_extent: tuple[float, float] | None = None,
-    y_up: bool = True,
-    title: str = "Generated Terrain",
-) -> None:
+def generateFunction(matrix, x_extent=(0.0, 1.0), y_extent=(0.0, 1.0)):
     """
-    Show a heatmap of the terrain. If extents are given, axes are labeled in those units.
-    y_up=True makes the plot's y-axis increase upward (matches standard math).
+    Turn a 2D elevation matrix into a callable surface f(x, y).
+    Returns (f, meta) where f is vectorized and meta contains grids/spacings.
     """
-    H, W = terrain.shape
-    if x_extent is None:
-        x_extent = (0, W - 1)
-    if y_extent is None:
-        y_extent = (0, H - 1)
+    matrix = np.asarray(matrix)
+    H, W = matrix.shape
 
-    origin = "lower" if y_up else "upper"
-    plt.imshow(
-        terrain,
-        cmap="terrain",
-        origin=origin,
-        extent=(x_extent[0], x_extent[1], y_extent[0], y_extent[1]),
-        aspect="auto",
-    )
-    plt.colorbar(label="Relative Elevation")
-    plt.xlabel("x")
-    plt.ylabel("y")
-    plt.title(title)
-    plt.show()
+    x_grid = np.linspace(x_extent[0], x_extent[1], W)
+    y_grid = np.linspace(y_extent[0], y_extent[1], H)
+    dx = (x_extent[1] - x_extent[0]) / (W - 1) if W > 1 else 1.0
+    dy = (y_extent[1] - y_extent[0]) / (H - 1) if H > 1 else 1.0
+
+    def f(x, y):
+        return _bilinear_interp(matrix, x, y, x_grid, y_grid)
+
+    meta = {
+        "x_grid": x_grid, "y_grid": y_grid,
+        "dx": dx, "dy": dy,
+        "shape": (H, W),
+        "matrix": matrix,
+        "x_extent": x_extent, "y_extent": y_extent,
+    }
+    return f, meta
 
 
+def find_extrema(matrix, x_extent=(0.0, 1.0), y_extent=(0.0, 1.0)):
+    """Return (min_val,(xmin,ymin)), (max_val,(xmax,ymax)) at grid points."""
+    H, W = matrix.shape
+    j_min, i_min = np.unravel_index(np.argmin(matrix), (H, W))
+    j_max, i_max = np.unravel_index(np.argmax(matrix), (H, W))
+
+    x_grid = np.linspace(x_extent[0], x_extent[1], W)
+    y_grid = np.linspace(y_extent[0], y_extent[1], H)
+
+    return (matrix[j_min, i_min], (x_grid[i_min], y_grid[j_min])), \
+           (matrix[j_max, i_max], (x_grid[i_max], y_grid[j_max]))
+
+
+def volume_under_surface(matrix, x_extent=(0.0, 1.0), y_extent=(0.0, 1.0),
+                         baseline=0.0, positive_only=False):
+    """
+    Approximate ∫∫(z - baseline) dA via a Riemann sum over the grid.
+    If positive_only=True, negative parts are clipped to zero.
+    """
+    H, W = matrix.shape
+    dx = (x_extent[1] - x_extent[0]) / (W - 1) if W > 1 else 1.0
+    dy = (y_extent[1] - y_extent[0]) / (H - 1) if H > 1 else 1.0
+    z = matrix - baseline
+    if positive_only:
+        z = np.maximum(z, 0.0)
+    return z.sum() * dx * dy
+
+
+# ------------ Demo ------------
 if __name__ == "__main__":
-    # Quick manual check
-    T = generate_topology(Height=100, Width=120, alpha=1.5, seed=42)
-    visualize_terrain(T, x_extent=(0, 10), y_extent=(0, 8), y_up=True)
+    # 1) Generate terrain (repeatable via seed)
+    terrain = generate_topology(Height=100, Width=120, alpha=1.5, seed=42)
+
+    # 2) (Optional) visualize with y pointing UP and physical axis units
+    visualize_terrain(terrain, x_extent=(0, 10), y_extent=(0, 8), y_up=True)
+
+    # 3) Wrap as a continuous surface f(x,y)
+    f, meta = generateFunction(terrain, x_extent=(0, 10), y_extent=(0, 8))
+
+    # 4) Sample a few points
+    xs = np.array([0.0, 2.5, 5.0, 7.5, 10.0])
+    ys = np.array([0.0, 2.0, 4.0, 6.0, 8.0])
+    print("f(xs, ys) =", f(xs, ys))
+
+    # 5) Extrema + volume examples
+    (zmin, (xmin, ymin)), (zmax, (xmax, ymax)) = find_extrema(terrain, (0, 10), (0, 8))
+    print(f"Min z={zmin:.3f} at ({xmin:.2f},{ymin:.2f}); Max z={zmax:.3f} at ({xmax:.2f},{ymax:.2f})")
+
+    vol = volume_under_surface(terrain, (0, 10), (0, 8), baseline=0.0, positive_only=True)
+    print(f"Volume above baseline 0: {vol:.4f} (units^3)")
