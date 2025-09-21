@@ -74,7 +74,7 @@ def fk_absolute(θ: Angles, L: Links) -> Points:
 
 def fk_relative(θ: Angles, L: Links) -> Points:
     """
-    Angles RELATIVE (typical robotics, also called "joint angles"):
+    Angles RELATIVE (the "joint angles"):
     Link1 absolute angle:       α1 = θ1
     Link2 absolute orientation: α2 = θ1 + θ2
     Link3 absolute orientation: α3 = θ1 + θ2 + θ3
