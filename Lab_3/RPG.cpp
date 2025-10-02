@@ -2,21 +2,30 @@
 #include "RPG.h"
 
 // default constructor
-RPG::RPG()
-    : name("NPC"), hits_taken(0), luck(0.1f), exp(50.0f), level(1) {}
-
+RPG::RPG(){
+    this->name=name; 
+    this->hits_taken=hits_taken; 
+    this-> luck=luck;
+    this-> exp=exp; 
+    this-> level=level;
+}
 // overloaded constructor
 RPG::RPG(string name, int hits_taken, float luck, float exp, int level)
-    : name(name), hits_taken(hits_taken), luck(luck), exp(exp), level(level) {}
-
+    {
+    this->name=name; 
+    this->hits_taken=hits_taken; 
+    this->luck=luck; 
+    this->exp=exp; 
+    this->level=level;
+    }
 // mutators
 void RPG::setHitsTaken(int new_hits) {
-    hits_taken = new_hits;
+    this->hits_taken = new_hits;
 }
 
 bool RPG::isAlive() const {
     // alive as long as hits_taken is less than MAX_HITS_TAKEN
-    return hits_taken < MAX_HITS_TAKEN;
+    return this->hits_taken < MAX_HITS_TAKEN;
 }
 
 // accessors

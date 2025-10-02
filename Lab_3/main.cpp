@@ -4,7 +4,7 @@
 using namespace std;
 
 int main() {
-    RPG p1("Gandalf", 0, 0.2f, 60.0f, 1);
+    RPG p1("Gandalf", 0, 0.2, 60.0, 1);
     RPG p2; // default NPC
 
     cout << p1.getName() << " Current Stats\n";
