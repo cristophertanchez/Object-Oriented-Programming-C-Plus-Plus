@@ -1,4 +1,4 @@
-#include <iosteam>
+#include<iostream>
 #include "Pokemon.h"
 
 /**
@@ -11,7 +11,7 @@ Pokemon::Pokemon(){
     attack=0;
     defense=0;
     cout<<"Default Contructor (Pokemon)\n";
-}
+}   
 /**
  * @brief Contruct a new Pokemon:: Pokemon object
  * 
@@ -21,7 +21,7 @@ Pokemon::Pokemon(){
  * @param def
  * @param type
  */
-Pokemon::Pokemon(strong name, int hp, int att, int def, vector<string> type){
+Pokemon::Pokemon(string name, int hp, int att, int def, vector<string> type){
     this->name=name;
     this->hp=hp;
     attack=att;

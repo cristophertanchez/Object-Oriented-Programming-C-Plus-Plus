@@ -1,5 +1,5 @@
 #include <iostream>
-#include <studio.h>
+#include <stdio.h>
 #include "Charmander.h"
 /**
  * @brief Construct a new Charmander:: Charmander Object
@@ -10,7 +10,7 @@ Charmander:: Charmander() : Pokemon (){
     skills.push_back("Growl");
     skills.push_back("Scratch");
 
-    Cout<<"Default Contructor (Charmander)\n";
+    cout<<"Default Contructor (Charmander)\n";
 
 }
 
@@ -23,10 +23,10 @@ Charmander:: Charmander() : Pokemon (){
  * @param def 
  * @param t  
  */
-Charmander::Charmander(string name,int hp, int att, int def, vector<strong> t, vector<string> s)
-Pokemon(name, hp, att, def, t){
-    type=t;
-    skills=s;
+Charmander::Charmander(string name,int hp, int att, int def, vector<string> t, vector<string> s) {
+ Pokemon(name, hp, att, def,t) ;
+    type = t;
+    skills = s;
     cout<<"Overloaded Contructor (Charmander)\n";
 }
 
@@ -39,7 +39,7 @@ void Charmander::speak(){
 }
 
 /**
- * @brief calls pringStats from the parent class (Pokemon) and appends the skills used for Charmander
+ * @brief calls printStats from the parent class (Pokemon) and appends the skills used for Charmander
  * 
  */
 void Charmander::printStats(){
