@@ -6,7 +6,7 @@
 using std::string;
 
 const int   INVENTORY_SIZE = 10;
-const float HIT_FACTOR     = 0.05f;
+const float HIT_FACTOR     = 0.05;
 const int   MAX_HITS_TAKEN = 3;
 
 class RPG {
@@ -27,7 +27,7 @@ public:
     int    getLevel()   const;
 
 private:
-    string name;
+    string name = "NPC ";
     int    hits_taken;
     float  luck;
     float  exp;

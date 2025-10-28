@@ -3,8 +3,8 @@
 
 // default constructor
 RPG::RPG(){
-    this->name=name; 
-    this->hits_taken=hits_taken; 
+    this-> name=name; 
+    this-> hits_taken=hits_taken; 
     this-> luck=luck;
     this-> exp=exp; 
     this-> level=level;
