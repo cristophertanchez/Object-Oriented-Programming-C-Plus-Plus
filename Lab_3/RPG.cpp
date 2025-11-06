@@ -3,7 +3,6 @@
 #include <random>
 using namespace std;
 
-// single RNG for the translation unit (no casts anywhere)
 static mt19937 RNG(random_device{}());
 
 RPG::RPG()
