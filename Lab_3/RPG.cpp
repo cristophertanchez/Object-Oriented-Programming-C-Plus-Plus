@@ -32,7 +32,7 @@ void RPG::attack(RPG* opponent) {
     float r = dis(RNG);
 
     // higher opponent luck ⇒ harder to land a hit
-    bool hit = r > (HIT_FACTOR * opponent->getLuck());
+    bool hit = (r > (HIT_FACTOR * opponent->getLuck()));
     if (hit) {
         opponent->setHitsTaken(opponent->getHitsTaken() + 1);
     }
