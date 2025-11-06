@@ -4,13 +4,13 @@
 using namespace std;
 
 static mt19937 RNG(random_device{}());
-
+//default constructor
 RPG::RPG()
     : name("NPC"), hits_taken(0), luck(0.1), exp(0.0), level(1) {}
-
+//overloaded constructor
 RPG::RPG(string n, int h, float l, float e, int lv)
     : name(n), hits_taken(h), luck(l), exp(e), level(lv) {}
-
+//deconstructor to save memory
 RPG::~RPG() {}
 
 void RPG::setHitsTaken(int new_hits) { hits_taken = new_hits; }
