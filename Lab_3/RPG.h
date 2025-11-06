@@ -15,7 +15,7 @@ public:
 
     // actions
     void  attack(RPG* opponent);   // attempt to hit opponent
-    void  printStats() const;      // pretty-print stats
+    void  printStats() const;      // print stats
     void  updateExpLevel();        // +50 exp, level up at 100 (then exp -> 0, luck += 0.1)
 
     // mutators
