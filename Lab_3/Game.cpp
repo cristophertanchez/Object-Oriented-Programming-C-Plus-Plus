@@ -71,5 +71,6 @@ void Game::gameLoop() {
 void Game::printFinalResults() const {
     for (const RPG* p : players) {
         p->printStats();
+    
     }
 }

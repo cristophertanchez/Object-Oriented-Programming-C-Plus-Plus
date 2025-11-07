@@ -13,6 +13,7 @@ RPG::RPG(string n, int h, float l, float e, int lv)
 //deconstructor to save memory
 RPG::~RPG() {}
 
+//Mutators
 void RPG::setHitsTaken(int new_hits) { hits_taken = new_hits; }
 void RPG::setName(const string& new_name) { name = new_name; }
 
